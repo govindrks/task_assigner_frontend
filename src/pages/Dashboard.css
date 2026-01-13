@@ -1,0 +1,88 @@
+/* Layout */
+.dashboard-layout {
+  display: flex;
+  height: 100vh;
+  background: #f4f5f7;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: #020617;
+  color: #fff;
+  padding: 24px;
+}
+
+.logo {
+  color: #60a5fa;
+  margin-bottom: 32px;
+}
+
+.sidebar nav a {
+  display: block;
+  padding: 10px 0;
+  color: #cbd5f5;
+  cursor: pointer;
+}
+
+.sidebar nav a.active {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+/* Main */
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Navbar */
+.navbar {
+  height: 60px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.navbar button {
+  background: #ef4444;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Board */
+.board {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+}
+
+.column {
+  background: #ebecf0;
+  flex: 1;
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.column h3 {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #172b4d;
+}
+
+/* Task Card */
+.task-card {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}

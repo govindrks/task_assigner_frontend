@@ -1,0 +1,76 @@
+import { useState } from "react";
+import { loginApi } from "../api/auth.api";
+import { useNavigate, Link } from "react-router-dom";
+import "./Login.css";
+
+export default function Login() {
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await loginApi(form);
+
+      // Save token (basic version)
+      localStorage.setItem("token", res.data.data.token);
+
+       navigate("/dashboard", { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-container">
+      <form className="login-card" onSubmit={handleSubmit}>
+        <h1>Task Assigner</h1>
+        <p>Log in to your account</p>
+
+        {error && <div className="error">{error}</div>}
+
+        <label>Email</label>
+        <input
+          name="email"
+          type="email"
+          placeholder="you@example.com"
+          required
+          onChange={handleChange}
+        />
+
+        <label>Password</label>
+        <input
+          name="password"
+          type="password"
+          placeholder="••••••••"
+          required
+          onChange={handleChange}
+        />
+
+        <button disabled={loading}>
+          {loading ? "Logging in..." : "Login"}
+        </button>
+
+        <span className="footer-text">
+          Don’t have an account? <Link to="/register">Register</Link>
+        </span>
+      </form>
+    </div>
+  );
+}
