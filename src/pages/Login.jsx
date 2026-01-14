@@ -18,24 +18,33 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    try {
-      const res = await loginApi(form);
+  try {
+    const res = await loginApi(form);
 
-      // Save token (basic version)
-      localStorage.setItem("token", res.data.data.token);
+    const { token, user } = res.data.data;
 
-       navigate("/dashboard", { replace: true });
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
+    //  SAVE BOTH
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    //  ROLE-BASED REDIRECT
+    if (user.role === "ADMIN") {
+      navigate("/admin/dashboard", { replace: true });
+    } else {
+      navigate("/dashboard", { replace: true });
     }
-  };
+  } catch (err) {
+    setError(err.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="login-container">

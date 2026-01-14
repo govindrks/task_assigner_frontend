@@ -1,0 +1,132 @@
+/* ================= ADMIN LAYOUT ================= */
+
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #1e1e1e;
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: 24px;
+  overflow-x: auto;
+}
+
+/* ================= BOARD ================= */
+
+.board {
+  display: flex;
+  gap: 16px;
+  max-width: 1200px;
+  margin-top: 20px;
+}
+
+.column {
+  min-width: 300px;
+  background: #ebecf0;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+/* ================= TASK CARD ================= */
+
+.task-card.admin {
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 2px rgba(9,30,66,.25);
+}
+
+.task-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.task-desc {
+  font-size: 13px;
+  color: #5e6c84;
+}
+
+.task-meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 6px;
+}
+
+/* ================= FOOTER ================= */
+
+.task-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.creator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #0052cc;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.creator-name {
+  font-size: 12px;
+  color: #42526e;
+}
+
+/* ================= ACTIONS ================= */
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.icon {
+  cursor: pointer;
+  font-size: 14px;
+  color: #6b778c;
+}
+
+.icon:hover {
+  color: #0052cc;
+}
+
+.icon.delete:hover {
+  color: #de350b;
+}
+
+
+.creator-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.user-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-name {
+  font-size: 12px;      /* SAME as CreatedBy */
+  color: #42526e;
+}
+
+.avatar.secondary {
+  background: #6b778c;
+}
+
