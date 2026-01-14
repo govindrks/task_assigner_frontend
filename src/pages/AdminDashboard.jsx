@@ -14,33 +14,42 @@ export default function AdminDashboard() {
 
   const currentUser = JSON.parse(localStorage.getItem("user"));
 
+  /* ================= FETCH TASKS ================= */
+
   const fetchTasks = async () => {
     const res = await getAllTasks();
-    setTasks(res.data);
+    setTasks(res.data || []);
   };
 
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  const grouped = STATUSES.reduce((acc, s) => {
-    acc[s] = tasks.filter((t) => t.status === s);
+  /* ================= GROUP BY STATUS ================= */
+
+  const grouped = STATUSES.reduce((acc, status) => {
+    acc[status] = tasks.filter((t) => t.status === status);
     return acc;
   }, {});
 
-  const creatorLabel = (createdBy) => {
-    if (!createdBy) return "Unknown";
-    if (createdBy._id === currentUser?.id) return "You";
-    return createdBy.name;
+  /* ================= HELPERS ================= */
+
+  const creatorLabel = (user) => {
+    if (!user) return "Unknown";
+    if (user._id === currentUser?.id) return "You";
+    return user.name;
   };
 
-  const labelForUser = (user) => {
+  const updatedByLabel = (user) => {
     if (!user) return null;
     if (user._id === currentUser?.id) return "You";
     return user.name;
   };
 
-  const avatarChar = (user) => user?.name?.charAt(0).toUpperCase() || "";
+  const avatarChar = (user) =>
+    user?.name?.charAt(0).toUpperCase() || "?";
+
+  /* ================= RENDER ================= */
 
   return (
     <div className="dashboard-layout">
@@ -58,8 +67,16 @@ export default function AdminDashboard() {
             <div key={status} className="column">
               <h3>{status.replace("_", " ")}</h3>
 
+              {grouped[status]?.length === 0 && (
+                <p className="empty">No tasks</p>
+              )}
+
               {grouped[status]?.map((task) => (
-                <div key={task._id} className="task-card admin">
+                <div
+                  key={task._id}
+                  className="task-card admin"
+                  onClick={() => setEditingTask(task)} // 🔥 OPEN EDIT + TIMELINE
+                >
                   <div className="task-title">{task.title}</div>
 
                   {task.description && (
@@ -67,19 +84,22 @@ export default function AdminDashboard() {
                   )}
 
                   <div className="task-meta">
-                    Assigned to: {task.assignedTo?.name || "Unassigned"}
+                    Assigned to:{" "}
+                    {task.assignedTo?.name || "Unassigned"}
                   </div>
 
                   {task.dueDate && (
                     <small className="task-meta">
-                      Due: {new Date(task.dueDate).toLocaleDateString()}
+                      Due:{" "}
+                      {new Date(task.dueDate).toLocaleDateString()}
                     </small>
                   )}
 
+                  {/* FOOTER */}
                   <div className="task-footer">
                     <div className="creator">
                       <div className="avatar">
-                        {creatorLabel(task.createdBy).charAt(0).toUpperCase()}
+                        {avatarChar(task.createdBy)}
                       </div>
                       <span className="creator-name">
                         {creatorLabel(task.createdBy)}
@@ -93,12 +113,13 @@ export default function AdminDashboard() {
                           {avatarChar(task.updatedBy)}
                         </div>
                         <span className="user-name">
-                          Updated by {labelForUser(task.updatedBy)}
+                          Updated by {updatedByLabel(task.updatedBy)}
                         </span>
                       </div>
                     )}
 
-                    <div className="actions">
+                    {/* ACTIONS */}
+                    <div className="actions" onClick={(e) => e.stopPropagation()}>
                       <span
                         className="icon edit"
                         title="Edit Task"
@@ -124,6 +145,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        {/* CREATE TASK */}
         {showCreate && (
           <CreateTaskModal
             mode="create"
@@ -132,6 +154,7 @@ export default function AdminDashboard() {
           />
         )}
 
+        {/* EDIT TASK + ACTIVITY TIMELINE */}
         {editingTask && (
           <CreateTaskModal
             mode="edit"

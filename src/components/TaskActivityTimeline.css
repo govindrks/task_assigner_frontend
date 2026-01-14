@@ -1,0 +1,42 @@
+.timeline {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.timeline-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #172b4d;
+  margin-bottom: 12px;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #0052cc;
+  border-radius: 50%;
+  margin-top: 6px;
+}
+
+.content p {
+  font-size: 13px;
+  color: #172b4d;
+  margin: 0;
+}
+
+.content small {
+  color: #6b778c;
+  font-size: 11px;
+}
+
+.timeline.empty {
+  color: #6b778c;
+  font-size: 13px;
+}

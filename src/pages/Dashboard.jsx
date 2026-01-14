@@ -10,7 +10,8 @@ const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
 export default function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [draggedTask, setDraggedTask] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user"));
 
@@ -24,8 +25,6 @@ export default function Dashboard() {
   useEffect(() => {
     fetchTasks();
   }, []);
-
-
 
   /* ================= GROUP BY STATUS ================= */
 
@@ -43,45 +42,38 @@ export default function Dashboard() {
   const onDrop = async (status) => {
     if (!draggedTask || draggedTask.status === status) return;
 
-    // Optimistic UI update
+    // Optimistic UI
     setTasks((prev) =>
-      prev.map((t) => (t._id === draggedTask._id ? { ...t, status } : t))
+      prev.map((t) =>
+        t._id === draggedTask._id ? { ...t, status } : t
+      )
     );
 
-    // Backend sync
     try {
       await updateTaskStatus(draggedTask._id, status);
-    } catch (err) {
-      console.error("Failed to update status");
+    } catch {
       fetchTasks(); // rollback
     }
 
     setDraggedTask(null);
   };
 
-  /* ================= SAFE HELPERS ================= */
+  /* ================= HELPERS ================= */
 
-  const getUserName = (createdBy) => {
-  if (!createdBy) return "Unknown";
-    if (createdBy._id === currentUser?.id) return "You";
-    return createdBy.name;
-}
-
-
-  const getAvatarChar = (user) => {
-    if (!user) return "?";
-    if (typeof user === "string") return "U";
-    return user.name?.charAt(0).toUpperCase() || "U";
+  const createdByLabel = (user) => {
+    if (!user) return "Unknown";
+    if (user._id === currentUser?.id) return "You";
+    return user.name;
   };
 
-  const labelForUser = (user) => {
+  const updatedByLabel = (user) => {
     if (!user) return null;
     if (user._id === currentUser?.id) return "You";
     return user.name;
   };
 
   const avatarChar = (user) =>
-  user?.name?.charAt(0).toUpperCase() || "?";
+    user?.name?.charAt(0).toUpperCase() || "?";
 
   /* ================= RENDER ================= */
 
@@ -92,8 +84,8 @@ export default function Dashboard() {
       <div className="dashboard-main">
         <Navbar />
 
-        {/* USER CREATE TASK */}
-        <button className="create-btn" onClick={() => setShowModal(true)}>
+        {/* CREATE TASK */}
+        <button className="create-btn" onClick={() => setShowCreate(true)}>
           + Create Task
         </button>
 
@@ -117,6 +109,7 @@ export default function Dashboard() {
                   className="task-card"
                   draggable
                   onDragStart={() => onDragStart(task)}
+                  onClick={() => setEditingTask(task)} // 🔥 OPEN EDIT MODAL
                 >
                   <h4>{task.title}</h4>
 
@@ -130,36 +123,50 @@ export default function Dashboard() {
                     </small>
                   )}
 
-                  {/* Jira-like footer */}
+                  {/* FOOTER (Jira-style) */}
                   <div className="task-footer">
-                    <div className="creator">
-                      Created by: {task.createdBy ? getUserName(task.createdBy) : "You"}
+                    <div className="user-meta">
+                      <div className="avatar">
+                        {avatarChar(task.createdBy)}
+                      </div>
+                      <span>
+                        Created by {createdByLabel(task.createdBy)}
+                      </span>
                     </div>
 
-                    <div className="avatar">
-                      {getAvatarChar(task.assignedTo)}
-                    </div>
-                  </div>
-                  {/* UPDATED BY (ONLY IF EXISTS) */}
+                    {/* UPDATED BY (ONLY IF EXISTS) */}
                     {task.updatedBy && (
                       <div className="user-meta">
                         <div className="avatar secondary">
                           {avatarChar(task.updatedBy)}
                         </div>
-                        <span className="user-name">
-                          Updated by:- {labelForUser(task.updatedBy)}
+                        <span>
+                          Updated by {updatedByLabel(task.updatedBy)}
                         </span>
                       </div>
                     )}
+                  </div>
                 </div>
               ))}
             </div>
           ))}
         </div>
 
-        {showModal && (
+        {/* CREATE MODAL */}
+        {showCreate && (
           <CreateTaskModal
-            onClose={() => setShowModal(false)}
+            mode="create"
+            onClose={() => setShowCreate(false)}
+            onCreated={fetchTasks}
+          />
+        )}
+
+        {/* EDIT + ACTIVITY TIMELINE MODAL */}
+        {editingTask && (
+          <CreateTaskModal
+            mode="edit"
+            task={editingTask}
+            onClose={() => setEditingTask(null)}
             onCreated={fetchTasks}
           />
         )}
