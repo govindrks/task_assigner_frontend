@@ -35,6 +35,10 @@ export const createMyTask = (payload) =>
 export const updateMyTask = (id, payload) =>
   api.put(`/api/tasks/${id}`, payload);
 
+export const updateMyTaskPriority = (id, priority) =>
+  api.put(`/api/tasks/${id}`, { priority });
+
+
 export const updateTaskStatus = (id, status) =>
   api.put(`/api/tasks/${id}`, { status });
 

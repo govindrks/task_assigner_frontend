@@ -29,3 +29,8 @@
   justify-content: flex-end;
   gap: 10px;
 }
+
+select[name="priority"] {
+  border-left: 4px solid #ff9800;
+  font-weight: 600;
+}

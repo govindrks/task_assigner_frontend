@@ -7,6 +7,13 @@ import "./Dashboard.css";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
 
+const PRIORITY_ORDER = {
+  URGENT: 4,
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1
+};
+
 export default function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [draggedTask, setDraggedTask] = useState(null);
@@ -26,10 +33,16 @@ export default function Dashboard() {
     fetchTasks();
   }, []);
 
-  /* ================= GROUP BY STATUS ================= */
+  /* ================= GROUP BY STATUS + SORT BY PRIORITY ================= */
 
   const grouped = STATUSES.reduce((acc, status) => {
-    acc[status] = tasks.filter((t) => t.status === status);
+    acc[status] = tasks
+      .filter((t) => t.status === status)
+      .sort(
+        (a, b) =>
+          (PRIORITY_ORDER[b.priority] || 0) -
+          (PRIORITY_ORDER[a.priority] || 0)
+      );
     return acc;
   }, {});
 
@@ -109,9 +122,18 @@ export default function Dashboard() {
                   className="task-card"
                   draggable
                   onDragStart={() => onDragStart(task)}
-                  onClick={() => setEditingTask(task)} // 🔥 OPEN EDIT MODAL
+                  onClick={() => setEditingTask(task)}
                 >
                   <h4>{task.title}</h4>
+
+                  {/* 🔥 PRIORITY BADGE */}
+                  {task.priority && (
+                    <span
+                      className={`priority-badge ${task.priority.toLowerCase()}`}
+                    >
+                      {task.priority}
+                    </span>
+                  )}
 
                   {task.description && (
                     <p className="task-desc">{task.description}</p>
@@ -119,11 +141,12 @@ export default function Dashboard() {
 
                   {task.dueDate && (
                     <small className="due-date">
-                      Due: {new Date(task.dueDate).toLocaleDateString()}
+                      Due:{" "}
+                      {new Date(task.dueDate).toLocaleDateString()}
                     </small>
                   )}
 
-                  {/* FOOTER (Jira-style) */}
+                  {/* FOOTER */}
                   <div className="task-footer">
                     <div className="user-meta">
                       <div className="avatar">
@@ -134,7 +157,6 @@ export default function Dashboard() {
                       </span>
                     </div>
 
-                    {/* UPDATED BY (ONLY IF EXISTS) */}
                     {task.updatedBy && (
                       <div className="user-meta">
                         <div className="avatar secondary">
@@ -161,7 +183,7 @@ export default function Dashboard() {
           />
         )}
 
-        {/* EDIT + ACTIVITY TIMELINE MODAL */}
+        {/* EDIT MODAL */}
         {editingTask && (
           <CreateTaskModal
             mode="edit"

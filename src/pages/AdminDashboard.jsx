@@ -7,6 +7,13 @@ import "./AdminDashboard.css";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
 
+const PRIORITY_ORDER = {
+  URGENT: 4,
+  HIGH: 3,
+  MEDIUM: 2,
+  LOW: 1,
+};
+
 export default function AdminDashboard() {
   const [tasks, setTasks] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
@@ -25,10 +32,16 @@ export default function AdminDashboard() {
     fetchTasks();
   }, []);
 
-  /* ================= GROUP BY STATUS ================= */
+  /* ================= GROUP BY STATUS + SORT BY PRIORITY ================= */
 
   const grouped = STATUSES.reduce((acc, status) => {
-    acc[status] = tasks.filter((t) => t.status === status);
+    acc[status] = tasks
+      .filter((t) => t.status === status)
+      .sort(
+        (a, b) =>
+          (PRIORITY_ORDER[b.priority] || 0) -
+          (PRIORITY_ORDER[a.priority] || 0)
+      );
     return acc;
   }, {});
 
@@ -75,9 +88,19 @@ export default function AdminDashboard() {
                 <div
                   key={task._id}
                   className="task-card admin"
-                  onClick={() => setEditingTask(task)} // 🔥 OPEN EDIT + TIMELINE
+                  onClick={() => setEditingTask(task)} // 🔥 Admin can edit including priority
                 >
                   <div className="task-title">{task.title}</div>
+
+                  {/* 🔥 PRIORITY BADGE */}
+                  {task.priority && (
+                    <span
+                      className={`priority-badge ${task.priority.toLowerCase()}`}
+                      title="Click to update"
+                    >
+                      {task.priority}
+                    </span>
+                  )}
 
                   {task.description && (
                     <div className="task-desc">{task.description}</div>
@@ -106,7 +129,6 @@ export default function AdminDashboard() {
                       </span>
                     </div>
 
-                    {/* UPDATED BY (ONLY IF EXISTS) */}
                     {task.updatedBy && (
                       <div className="user-meta">
                         <div className="avatar secondary">
@@ -119,7 +141,10 @@ export default function AdminDashboard() {
                     )}
 
                     {/* ACTIONS */}
-                    <div className="actions" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className="actions"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <span
                         className="icon edit"
                         title="Edit Task"
@@ -154,7 +179,7 @@ export default function AdminDashboard() {
           />
         )}
 
-        {/* EDIT TASK + ACTIVITY TIMELINE */}
+        {/* EDIT TASK */}
         {editingTask && (
           <CreateTaskModal
             mode="edit"
