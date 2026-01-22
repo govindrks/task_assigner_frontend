@@ -1,0 +1,115 @@
+.notification-wrapper {
+  position: relative;
+  margin-right: 15px;
+  cursor: pointer;
+}
+
+.bell {
+  font-size: 20px;
+  position: relative;
+}
+
+.notif-badge {
+  background: red;
+  color: rgb(153, 21, 21);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  position: absolute;
+  top: -5px;
+  right: -8px;
+}
+
+.notification-dropdown {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  background: rgb(227, 79, 5);
+  width: 300px;
+  max-height: 350px;
+  overflow-y: auto;
+  box-shadow: 0px 2px 8px rgba(44, 34, 34, 0.2);
+  border-radius: 6px;
+  z-index: 999;
+}
+
+.notification-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.notification-item.unread {
+  background: #38c05e;
+  font-weight: bold;
+}
+
+.notification-item.read {
+  background: rgb(25, 25, 25);
+}
+
+.notification-item:hover {
+  background: #59a2a2;
+}
+
+.change-list {
+  padding-left: 15px;
+  font-size: 12px;
+  color: #374151;
+}
+
+.change-list li {
+  list-style: disc;
+}
+
+.notif-title {
+  margin-bottom: 4px;
+}
+
+.notif-time {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+/* FILTERS */
+
+.notif-filters {
+  display: flex;
+  justify-content: space-around;
+  padding: 6px;
+  border-bottom: 1px solid #ddd;
+}
+
+.filter-btn {
+  font-size: 10px;
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.filter-btn.active {
+  background: #2563eb;
+  color: white;
+}
+
+.filter-btn:hover {
+  background: #7d8188;
+}
+
+/* MARK ALL READ */
+
+.mark-all-btn {
+  width: 100%;
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.mark-all-btn:hover {
+  background: #1d4ed8;
+}
