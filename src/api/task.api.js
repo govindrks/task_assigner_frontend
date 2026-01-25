@@ -1,24 +1,3 @@
-// import api from "./axios";
-
-// // USER
-// export const getMyTasks = () => api.get("/api/tasks/tasks");
-// export const updateTaskStatus = (id, status) =>
-//   api.put(`/api/tasks/${id}`, { status });
-
-// // ADMIN
-// export const getAllTasks = () => api.get("/api/tasks/tasks");
-
-// export const adminCreateTask = (payload) =>
-//   api.post("/api/tasks/tasks", payload); // ✅ ADD THIS
-
-// export const adminUpdateStatus = (id, status) =>
-//   api.patch(`/api/admin/tasks/${id}/status`, { status });
-
-// export const deleteTask = (id) =>
-//   api.delete(`/api/admin/tasks/${id}`);
-
-
-
 import api from "./axios";
 
 /* ================= USER ================= */

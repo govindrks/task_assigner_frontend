@@ -73,7 +73,7 @@ export default function Navbar() {
 
       {user && (
         <div className="navbar-user">
-          {/* 🔔 NOTIFICATION BELL */}
+          {/* NOTIFICATION BELL */}
           <div className="notification-wrapper">
             <span
               className="bell"

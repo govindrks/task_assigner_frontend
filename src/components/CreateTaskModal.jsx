@@ -62,7 +62,7 @@ export default function CreateTaskModal({
 
     if (mode === "edit") {
       if (isAdmin) {
-        // 🔥 Admin can update everything
+        // Admin can update everything
         const payload = {
           title: form.title,
           description: form.description || undefined,
@@ -73,7 +73,7 @@ export default function CreateTaskModal({
         };
         await adminUpdateTaskById(task._id, payload);
       } else {
-        // 🔒 User can update ONLY priority
+        //  User can update ONLY priority
         await updateMyTaskPriority(task._id, form.priority);
       }
     } else {
