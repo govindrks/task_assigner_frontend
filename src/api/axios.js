@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5555",
+  //baseURL: "http://localhost:5555",
+  baseURL: "https://task-assigner-backend-git-main-govindrks-projects.vercel.app/",
+  baseURL: "",
   headers: {
     "Cache-Control": "no-cache",
   },
