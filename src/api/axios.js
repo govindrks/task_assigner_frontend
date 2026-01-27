@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   //baseURL: "http://localhost:5555",
-  baseURL: "https://task-assigner-backend-git-main-govindrks-projects.vercel.app/",
+  baseURL: "https://task-assigner-backend-lswo.onrender.com",
   headers: {
     "Cache-Control": "no-cache",
   },
