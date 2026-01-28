@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { isAdmin } from "../utils/auth";
 import {
   getMyNotifications,
   markNotificationRead,
@@ -69,7 +71,8 @@ export default function Navbar() {
 
   return (
     <div className="navbar">
-      <h2>Dashboard</h2>
+      <h1>Task Assigner</h1>
+       {isAdmin() ? "Admin Dashboard" : "User Dashboard"}
 
       {user && (
         <div className="navbar-user">

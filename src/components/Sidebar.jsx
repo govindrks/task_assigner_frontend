@@ -5,9 +5,6 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <h2>Task Assigner</h2>
-
-      <Link to="/dashboard">My Tasks</Link>
-
       {isAdmin() && (
         <>
           <Link to="/admin/dashboard">Admin Dashboard</Link>

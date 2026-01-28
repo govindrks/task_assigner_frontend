@@ -1,7 +1,7 @@
 .create-btn {
   margin: 16px;
   padding: 10px 16px;
-  background: #0052cc;
+  background: #09e24a;
   color: white;
   border: none;
   border-radius: 4px;
@@ -18,7 +18,7 @@
 }
 
 .modal {
-  background: white;
+  background: rgb(207, 93, 93);
   padding: 24px;
   border-radius: 6px;
   width: 300px;
@@ -41,9 +41,9 @@
 }
 
 .task-title {
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 600;
-  color: #172b4d;
+  color: #141517;
   margin-bottom: 6px;
 }
 
@@ -71,22 +71,10 @@
   gap: 6px;
 }
 
-.avatar {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #0052cc;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 .creator-name {
   font-size: 12px;
-  color: #6b778c;
+  color: #dadfe7;
 }
 
 
@@ -112,7 +100,8 @@
 
 /* TASK CARD */
 .task-card {
-  background: #1c1a1a;
+  background:  #ffffff;
+  color: #141517;
   padding: 12px;
   border-radius: 4px;
   margin-bottom: 10px;

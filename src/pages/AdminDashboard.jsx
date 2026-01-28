@@ -66,8 +66,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar />
-
       <div className="dashboard-main">
         <Navbar />
 
@@ -88,11 +86,11 @@ export default function AdminDashboard() {
                 <div
                   key={task._id}
                   className="task-card admin"
-                  onClick={() => setEditingTask(task)} // 🔥 Admin can edit including priority
+                  onClick={() => setEditingTask(task)} // Admin can edit including priority
                 >
                   <div className="task-title">{task.title}</div>
 
-                  {/* 🔥 PRIORITY BADGE */}
+                  {/*  PRIORITY BADGE */}
                   {task.priority && (
                     <span
                       className={`priority-badge ${task.priority.toLowerCase()}`}

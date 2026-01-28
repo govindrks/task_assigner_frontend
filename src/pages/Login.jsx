@@ -80,12 +80,6 @@ export default function Login() {
           Don’t have an account? <Link to="/register">Register</Link>
         </span>
       </form>
-
-      {/* RIGHT – BLACK PANEL */}
-      <div className="login-right">
-        <h1>Organize work.</h1>
-        <h1>Assign faster.</h1>
-      </div>  
     </div>
   );
 }

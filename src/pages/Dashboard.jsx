@@ -92,7 +92,6 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar />
 
       <div className="dashboard-main">
         <Navbar />
