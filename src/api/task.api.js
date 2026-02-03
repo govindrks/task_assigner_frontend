@@ -53,20 +53,19 @@
 import api from "./axios";
 
 export const createTask = (payload) =>
-  api.post("/tasks/tasks", payload);
+  api.post("/api/v1/tasks/tasks", payload);
 
 // export const getTasks = () =>
 //   api.get("/tasks/tasks");
 
 export const getTasks = (orgId) =>
-  api.get(orgId ? `/tasks/tasks?organizationId=${orgId}` : "/tasks/tasks");
+  api.get(orgId ? `/api/v1/tasks/tasks?organizationId=${orgId}` : "/api/v1/tasks/tasks");
 
 
 export const updateTask = (id, payload) =>
-  api.patch(`/tasks/tasks/${id}`, payload);
-
+  api.patch(`/api/v1/tasks/tasks/${id}`, payload);
 export const deleteTask = (id) =>
-  api.delete(`/tasks/tasks/${id}`);
+  api.delete(`/api/v1/tasks/tasks/${id}`);
 
 export const markTaskDone = (id) =>
-  api.patch(`/tasks/tasks/${id}/mark-done`);
+  api.patch(`/api/v1/tasks/tasks/${id}/mark-done`);

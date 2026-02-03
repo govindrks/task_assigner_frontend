@@ -80,26 +80,26 @@
 import api from "./axios";
 
 export const getMyOrganizations = async () => {
-  const res = await api.get("/org/organizations/my");
+  const res = await api.get("/api/v1/org/organizations/my");
   return res.data;
 };
 
 export const createOrganization = async (payload) => {
-  const res = await api.post("/org/organizations", payload);
+  const res = await api.post("/api/v1/org/organizations", payload);
   return res.data;
 };
 
 export const getOrganizationMembers = (orgId) =>
-  api.get(`/org/organizations/${orgId}/members`);
+  api.get(`/api/v1/org/organizations/${orgId}/members`);
 
 
 export const removeOrganizationMember = async (userId) => {
-  const res = await api.delete(`/org/organizations/members/${userId}`);
+  const res = await api.delete(`/api/v1/org/organizations/members/${userId}`);
   return res.data;
 };
 export const updateMemberRole = async (userId, role) => {
   const res = await api.patch(
-    `/org/organizations/members/${userId}/role`,
+    `/api/v1/org/organizations/members/${userId}/role`,
     { role }
   );
   return res.data;

@@ -1,7 +1,7 @@
 import api from "./axios";
 
 export const inviteUser = (payload) =>
-  api.post("/invites", payload);
+  api.post("/api/v1/invites", payload);
 
 export const acceptInvite = (token) =>
-  api.post(`/invites/${token}/accept`);
+  api.post(`/api/v1/invites/${token}/accept`);
