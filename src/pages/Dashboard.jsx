@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
 import CreateTaskModal from "../components/CreateTaskModal";
-import { getMyTasks, updateTaskStatus } from "../api/task.api";
+import {
+  deleteTask,
+  getTasks,
+  updateTask,
+} from "../api/task.api";
+import { selectTenantApi } from "../api/auth.api";
+import { getMyOrganizations } from "../api/organization.api";
 import "./Dashboard.css";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
@@ -11,30 +16,101 @@ const PRIORITY_ORDER = {
   URGENT: 4,
   HIGH: 3,
   MEDIUM: 2,
-  LOW: 1
+  LOW: 1,
 };
 
 export default function Dashboard() {
   const [tasks, setTasks] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [selectedOrgId, setSelectedOrgId] = useState(null);
   const [draggedTask, setDraggedTask] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  /* ================= USER ================= */
+  const currentUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user"));
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /* ================= CHECK ADMIN ================= */
+  const isOrgAdminForSelected = useMemo(() => {
+    if (!currentUser || !selectedOrgId) return false;
+
+    const org = organizations.find((o) => o._id === selectedOrgId);
+    if (!org) return false;
+
+    return org.createdBy === currentUser.id;
+  }, [currentUser, organizations, selectedOrgId]);
+
+  /* ================= FETCH ORGS ================= */
+  const fetchOrganizations = async () => {
+    try {
+      const res = await getMyOrganizations();
+      setOrganizations(res.data || res || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   /* ================= FETCH TASKS ================= */
+  const fetchTasks = async (orgId = selectedOrgId) => {
+    if (!orgId) return;
 
-  const fetchTasks = async () => {
-    const res = await getMyTasks();
-    setTasks(res.data || []);
+    try {
+      const res = await getTasks(orgId);
+      setTasks(Array.isArray(res) ? res : res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   useEffect(() => {
-    fetchTasks();
+    fetchOrganizations();
   }, []);
 
-  /* ================= GROUP BY STATUS + SORT BY PRIORITY ================= */
+  /* ================= AUTO SELECT ORG ================= */
+  useEffect(() => {
+    if (!organizations.length || selectedOrgId) return;
 
+    const saved = localStorage.getItem("selectedOrgId");
+    const first =
+      organizations.find((o) => o._id === saved)?._id ||
+      organizations[0]._id;
+
+    setSelectedOrgId(first);
+  }, [organizations, selectedOrgId]);
+
+  /* ================= SYNC TENANT + FETCH ================= */
+  useEffect(() => {
+    if (!selectedOrgId) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      try {
+        const res = await selectTenantApi(selectedOrgId);
+        const token = res?.data?.token;
+        if (token) localStorage.setItem("token", token);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (!cancelled) fetchTasks(selectedOrgId);
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedOrgId]);
+
+  /* ================= GROUP TASKS ================= */
+  // 🔥 backend already filters org — do NOT filter again
   const grouped = STATUSES.reduce((acc, status) => {
     acc[status] = tasks
       .filter((t) => t.status === status)
@@ -46,16 +122,12 @@ export default function Dashboard() {
     return acc;
   }, {});
 
-  /* ================= DRAG & DROP ================= */
-
-  const onDragStart = (task) => {
-    setDraggedTask(task);
-  };
+  /* ================= DRAG ================= */
+  const onDragStart = (task) => setDraggedTask(task);
 
   const onDrop = async (status) => {
     if (!draggedTask || draggedTask.status === status) return;
 
-    // Optimistic UI
     setTasks((prev) =>
       prev.map((t) =>
         t._id === draggedTask._id ? { ...t, status } : t
@@ -63,44 +135,74 @@ export default function Dashboard() {
     );
 
     try {
-      await updateTaskStatus(draggedTask._id, status);
+      await updateTask(draggedTask._id, { status });
     } catch {
-      fetchTasks(); // rollback
+      fetchTasks();
     }
 
     setDraggedTask(null);
   };
 
+  /* ================= DELETE ================= */
+  const handleDeleteTask = async (taskId) => {
+    const ok = window.confirm("Delete this task?");
+    if (!ok) return;
+
+    try {
+      await deleteTask(taskId, selectedOrgId);
+      fetchTasks(selectedOrgId);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   /* ================= HELPERS ================= */
-
-  const createdByLabel = (user) => {
-    if (!user) return "Unknown";
-    if (user._id === currentUser?.id) return "You";
-    return user.name;
-  };
-
-  const updatedByLabel = (user) => {
-    if (!user) return null;
-    if (user._id === currentUser?.id) return "You";
-    return user.name;
-  };
-
   const avatarChar = (user) =>
     user?.name?.charAt(0).toUpperCase() || "?";
 
-  /* ================= RENDER ================= */
+  const createdByLabel = (user) =>
+    user?._id === currentUser?.id ? "You" : user?.name || "Unknown";
 
+  const updatedByLabel = (user) =>
+    user?._id === currentUser?.id ? "You" : user?.name;
+
+  /* ================= RENDER ================= */
   return (
     <div className="dashboard-layout">
-
       <div className="dashboard-main">
         <Navbar />
 
-        {/* CREATE TASK */}
-        <button className="create-btn" onClick={() => setShowCreate(true)}>
+        {/* ================= ORG SELECT ================= */}
+        {organizations.length > 0 && (
+          <div className="organizations-section">
+            <h2>Select Organization</h2>
+
+            <select
+              value={selectedOrgId || ""}
+              onChange={(e) => {
+                localStorage.setItem("selectedOrgId", e.target.value);
+                setSelectedOrgId(e.target.value);
+              }}
+              className="org-dropdown"
+            >
+              {organizations.map((org) => (
+                <option key={org._id} value={org._id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* ================= CREATE BUTTON ================= */}
+        <button
+          className="create-btn"
+          onClick={() => setShowCreate(true)}
+        >
           + Create Task
         </button>
 
+        {/* ================= BOARD ================= */}
         <div className="board">
           {STATUSES.map((status) => (
             <div
@@ -111,10 +213,6 @@ export default function Dashboard() {
             >
               <h3>{status.replace("_", " ")}</h3>
 
-              {grouped[status]?.length === 0 && (
-                <p className="empty">No tasks</p>
-              )}
-
               {grouped[status]?.map((task) => (
                 <div
                   key={task._id}
@@ -123,9 +221,21 @@ export default function Dashboard() {
                   onDragStart={() => onDragStart(task)}
                   onClick={() => setEditingTask(task)}
                 >
+                  {/* ADMIN DELETE BUTTON */}
+                  {isOrgAdminForSelected && (
+                    <button
+                      className="task-delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTask(task._id);
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  )}
+
                   <h4>{task.title}</h4>
 
-                  {/* 🔥 PRIORITY BADGE */}
                   {task.priority && (
                     <span
                       className={`priority-badge ${task.priority.toLowerCase()}`}
@@ -145,7 +255,6 @@ export default function Dashboard() {
                     </small>
                   )}
 
-                  {/* FOOTER */}
                   <div className="task-footer">
                     <div className="user-meta">
                       <div className="avatar">
@@ -173,22 +282,29 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* CREATE MODAL */}
+        {/* ================= MODALS ================= */}
         {showCreate && (
           <CreateTaskModal
             mode="create"
             onClose={() => setShowCreate(false)}
             onCreated={fetchTasks}
+            defaultOrgId={selectedOrgId}
+            orgRole={
+              isOrgAdminForSelected ? "ORG_ADMIN" : "ORG_MEMBER"
+            }
           />
         )}
 
-        {/* EDIT MODAL */}
         {editingTask && (
           <CreateTaskModal
             mode="edit"
             task={editingTask}
             onClose={() => setEditingTask(null)}
             onCreated={fetchTasks}
+            defaultOrgId={selectedOrgId}
+            orgRole={
+              isOrgAdminForSelected ? "ORG_ADMIN" : "ORG_MEMBER"
+            }
           />
         )}
       </div>

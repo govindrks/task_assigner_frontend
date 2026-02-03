@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import {
-  adminCreateTask,
-  adminUpdateTaskById,
-  updateMyTaskPriority,
+  createTask,
+  updateTask,
+  deleteTask,
 } from "../api/task.api";
-import { getAllUsers } from "../api/user.api";
+import { addTaskComment, getTaskComments } from "../api/activity.api";
+import {
+  getMyOrganizations,
+  getOrganizationMembers,
+} from "../api/organization.api";
 import "./CreateTaskModal.css";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
@@ -15,29 +19,61 @@ export default function CreateTaskModal({
   onCreated,
   mode = "create",
   task = null,
+  defaultOrgId = null,
+  orgRole,
 }) {
-  const [users, setUsers] = useState([]);
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const isAdmin = orgRole === "ORG_ADMIN";
+
+  const currentUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user"));
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const [organizations, setOrganizations] = useState([]);
+  const [orgMembers, setOrgMembers] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
+  const [commentError, setCommentError] = useState(null);
+  const [commentSaving, setCommentSaving] = useState(false);
 
   const [form, setForm] = useState({
     title: "",
     description: "",
     status: "TODO",
     priority: "MEDIUM",
-    assignedTo: "",
+    assignedTo: currentUser?.id || "",
     dueDate: "",
+    organizationId: defaultOrgId || "",
   });
 
-  const isAdmin = currentUser?.role === "ADMIN";
-
-  /* ================= FETCH USERS (ADMIN ONLY) ================= */
+  /* ================= LOAD ORGANIZATIONS (ADMIN ONLY) ================= */
   useEffect(() => {
-    if (isAdmin) {
-      getAllUsers().then((res) => setUsers(res.data));
-    }
+    if (!isAdmin) return;
+
+    getMyOrganizations()
+      .then((res) => {
+        const orgs = res.data || res;
+        setOrganizations(orgs || []);
+      })
+      .catch(() => setOrganizations([]));
   }, [isAdmin]);
 
-  /* ================= PREFILL FOR EDIT ================= */
+  /* ================= LOAD MEMBERS (EVERYONE) ================= */
+  useEffect(() => {
+    if (!form.organizationId) return;
+
+    getOrganizationMembers(form.organizationId)
+      .then((res) => {
+        const members = res.data || res.members || [];
+        setOrgMembers(members);
+      })
+      .catch(() => setOrgMembers([]));
+  }, [form.organizationId]);
+
+  /* ================= PREFILL EDIT ================= */
   useEffect(() => {
     if (mode === "edit" && task) {
       setForm({
@@ -46,9 +82,8 @@ export default function CreateTaskModal({
         status: task.status || "TODO",
         priority: task.priority || "MEDIUM",
         assignedTo: task.assignedTo?._id || "",
-        dueDate: task.dueDate
-          ? task.dueDate.split("T")[0]
-          : "",
+        dueDate: task.dueDate ? task.dueDate.split("T")[0] : "",
+        organizationId: task.organization?._id || task.organization || "",
       });
     }
   }, [mode, task]);
@@ -56,37 +91,81 @@ export default function CreateTaskModal({
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  /* ================= COMMENTS (EDIT MODE ONLY) ================= */
+  const refreshComments = useCallback(async (taskId) => {
+    if (!taskId) return;
+    try {
+      const res = await getTaskComments(taskId);
+      const list = Array.isArray(res) ? res : res.data || [];
+      setComments(list);
+    } catch (err) {
+      console.error("Failed to fetch comments:", err);
+      setComments([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    setCommentText("");
+    setCommentError(null);
+    setComments([]);
+
+    if (mode !== "edit") return;
+    refreshComments(task?._id);
+  }, [mode, refreshComments, task?._id]);
+
+  const handleAddComment = async () => {
+    if (mode !== "edit" || !task?._id) return;
+
+    const message = commentText.trim();
+    if (!message) return;
+
+    setCommentSaving(true);
+    setCommentError(null);
+
+    try {
+      await addTaskComment(task._id, message);
+      setCommentText("");
+      await refreshComments(task._id);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to add comment";
+      setCommentError(msg);
+    } finally {
+      setCommentSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!isAdmin || mode !== "edit" || !task?._id) return;
+
+    const ok = window.confirm("Delete this task? This cannot be undone.");
+    if (!ok) return;
+
+    await deleteTask(task._id);
+    onCreated();
+    onClose();
+  };
+
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const payload = {
+      title: form.title,
+      description: form.description || undefined,
+      status: form.status,
+      priority: form.priority,
+      assignedTo: form.assignedTo || null,
+      dueDate: form.dueDate || undefined,
+      organizationId: form.organizationId || undefined,
+    };
+
     if (mode === "edit") {
-      if (isAdmin) {
-        // Admin can update everything
-        const payload = {
-          title: form.title,
-          description: form.description || undefined,
-          status: form.status,
-          priority: form.priority,
-          assignedTo: form.assignedTo || null,
-          dueDate: form.dueDate || undefined,
-        };
-        await adminUpdateTaskById(task._id, payload);
-      } else {
-        //  User can update ONLY priority
-        await updateMyTaskPriority(task._id, form.priority);
-      }
+      await updateTask(task._id, payload);
     } else {
-      // Create (Admin only)
-      const payload = {
-        title: form.title,
-        description: form.description || undefined,
-        status: form.status,
-        priority: form.priority,
-        assignedTo: form.assignedTo || null,
-        dueDate: form.dueDate || undefined,
-      };
-      await adminCreateTask(payload);
+      await createTask(payload);
     }
 
     onCreated();
@@ -95,38 +174,56 @@ export default function CreateTaskModal({
 
   return (
     <div className="modal-overlay">
-      <form className="modal-card" onSubmit={handleSubmit}>
-        <h2>
-          {mode === "edit"
-            ? isAdmin
-              ? "Edit Task"
-              : "Update Priority"
-            : "Create Task"}
-        </h2>
+      <form className="modal-card" onSubmit={handleSubmit}
+      onClick={(e) => e.stopPropagation()}  // prevent overlay close
+      >
+        {/* CLOSE BUTTON */}
+      <button
+        type="button"
+        className="modal-close-btn"
+        onClick={onClose}
+      >
+        ❌
+      </button>
 
+        <h2>{mode === "edit" ? "Edit Task" : "Create Task"}</h2>
+
+        {/* ORGANIZATION (ADMIN ONLY) */}
+        {isAdmin && mode === "create" && (
+          <select
+            name="organizationId"
+            value={form.organizationId}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select Organization</option>
+            {organizations.map((org) => (
+              <option key={org._id} value={org._id}>
+                {org.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* TITLE */}
         <input
           name="title"
           placeholder="Task title"
           value={form.title}
-          disabled={mode === "edit" && !isAdmin}
-          required
           onChange={handleChange}
+          required
         />
 
+        {/* DESCRIPTION */}
         <textarea
           name="description"
           placeholder="Task description"
           value={form.description}
-          disabled={mode === "edit" && !isAdmin}
           onChange={handleChange}
         />
 
-        <select
-          name="status"
-          value={form.status}
-          disabled={mode === "edit" && !isAdmin}
-          onChange={handleChange}
-        >
+        {/* STATUS */}
+        <select name="status" value={form.status} onChange={handleChange}>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
               {s.replace("_", " ")}
@@ -134,12 +231,8 @@ export default function CreateTaskModal({
           ))}
         </select>
 
-        {/* PRIORITY (Always editable) */}
-        <select
-          name="priority"
-          value={form.priority}
-          onChange={handleChange}
-        >
+        {/* PRIORITY */}
+        <select name="priority" value={form.priority} onChange={handleChange}>
           {PRIORITIES.map((p) => (
             <option key={p} value={p}>
               {p}
@@ -147,48 +240,105 @@ export default function CreateTaskModal({
           ))}
         </select>
 
-        {isAdmin && (
-          <select
-            name="assignedTo"
-            value={form.assignedTo}
-            disabled={mode === "edit" && !isAdmin}
-            onChange={handleChange}
-          >
-            <option value="">Assign to user</option>
-            {users.map((u) => (
-              <option key={u._id} value={u._id}>
-                {u.name} ({u.email})
-              </option>
-            ))}
-          </select>
-        )}
+        {/* ✅ MEMBERS LIST FOR ASSIGNMENT */}
+        <select
+          name="assignedTo"
+          value={form.assignedTo}
+          onChange={handleChange}
+        >
+          <option value="">Unassigned</option>
 
+          {/* Self */}
+          <option value={currentUser?.id}>Me</option>
+
+          {orgMembers.map((m) => (
+            <option key={m.user?._id || m._id} value={m.user?._id || m._id}>
+              {(m.user?.name || m.name)} ({m.user?.email || m.email})
+            </option>
+          ))}
+        </select>
+
+        {/* DUE DATE */}
         <input
           type="date"
           name="dueDate"
           value={form.dueDate}
-          disabled={mode === "edit" && !isAdmin}
           onChange={handleChange}
         />
 
-        {!isAdmin && mode === "edit" && (
-          <small className="info-text">
-            You can only update task priority
-          </small>
-        )}
-
         <div className="modal-actions">
+          {isAdmin && mode === "edit" && (
+            <button
+              type="button"
+              className="danger"
+              onClick={handleDelete}
+            >
+              Delete
+            </button>
+          )}
           <button type="submit">
-            {mode === "edit"
-              ? isAdmin
-                ? "Update Task"
-                : "Update Priority"
-              : "Create"}
+            {mode === "edit" ? "Update Task" : "Create Task"}
           </button>
           <button type="button" onClick={onClose}>
             Cancel
           </button>
         </div>
+
+        {/* ================= COMMENTS (EDIT MODE) ================= */}
+        {mode === "edit" && task?._id && (
+          <div className="comments-section">
+            <h3>Comments</h3>
+
+            <textarea
+              placeholder="Write a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+            />
+
+            {commentError && (
+              <div className="comment-error">
+                {commentError}
+              </div>
+            )}
+
+            <div className="comment-actions">
+              <button
+                type="button"
+                onClick={handleAddComment}
+                disabled={commentSaving || !commentText.trim()}
+              >
+                {commentSaving ? "Adding..." : "Add Comment"}
+              </button>
+            </div>
+
+            <div className="comment-list">
+              {comments.length === 0 && (
+                <div className="comment-empty">
+                  No comments yet
+                </div>
+              )}
+
+              {comments.map((c) => (
+                <div key={c._id} className="comment-item">
+                  <div className="comment-meta">
+                    <span className="comment-author">
+                      {c.performedBy?.name || "Someone"}
+                    </span>
+                    <span>
+                      {c.createdAt
+                        ? new Date(c.createdAt).toLocaleString()
+                        : ""}
+                    </span>
+                  </div>
+
+                  <div className="comment-message">
+                    {c.message}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </form>
     </div>
   );

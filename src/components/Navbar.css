@@ -2,7 +2,58 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 0 16px;
 }
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.navbar-left h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.navbar-subtitle {
+  font-size: 12px;
+  color: #666;
+}
+
+.current-org {
+  display: inline-block;
+  background: #e3f2fd;
+  color: #0052cc;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #2563eb;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid #2563eb;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.nav-link:hover {
+  background: #2563eb;
+  color: white;
+}
+
 .navbar-right {
   display: flex;
   align-items: center;
@@ -152,4 +203,225 @@
 
 .mark-all-btn:hover {
   background: #1d4ed8;
+}
+
+/* ORGANIZATION SELECTOR */
+
+.org-selector {
+  display: flex;
+  align-items: center;
+}
+
+.org-dropdown {
+  position: relative;
+  list-style: none;
+}
+
+.org-summary {
+  cursor: pointer;
+  padding: 8px 12px;
+  border: 1px solid #e6a3a3;
+  border-radius: 6px;
+  background: #d64f4f;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.org-summary:hover {
+  background: #b4dc58;
+  border-color: #2563eb;
+}
+
+.org-summary::after {
+  content: " ▼";
+  font-size: 10px;
+}
+
+details[open] .org-summary::after {
+  content: " ▲";
+}
+
+.org-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: rgb(164, 135, 135);
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-top: 4px;
+  min-width: 200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.org-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.org-item:hover {
+  background: #dfc0c0;
+}
+
+.org-item.active {
+  background: #e3f2fd;
+  color: #0052cc;
+  font-weight: 600;
+}
+
+.org-item.empty {
+  padding: 10px 12px;
+  color: #999;
+  text-align: center;
+  cursor: default;
+}
+
+.org-item.empty:hover {
+  background: transparent;
+}
+
+/* ================= ORGANIZATION DROPDOWN ================= */
+
+.org-dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.org-dropdown-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #0052cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.org-dropdown-btn:hover {
+  background: #003a99;
+  box-shadow: 0 2px 6px rgba(0, 82, 204, 0.3);
+}
+
+.org-dropdown-menu {
+  position: absolute;
+  color: black;
+  top: 40px;
+  left: 0;
+  background: rgb(77, 156, 216);
+  border: 1px solid #15171a;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 999;
+  padding: 12px 0;
+}
+
+.org-dropdown-menu h4 {
+  margin: 0 12px 12px 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #bfcb64;
+  font-size: 14px;
+  color: #172b4d;
+}
+
+.org-list {
+  position: relative;
+  top: 0;
+  left: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  min-width: auto;
+  box-shadow: none;
+  max-height: none;
+  overflow-y: visible;
+  z-index: auto;
+  padding: 0;
+}
+
+.org-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid #b06f6f;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: none;
+  font-size: 14px;
+}
+
+.org-item:hover {
+  background: #81c577;
+}
+
+.org-item:last-child {
+  border-bottom: 1px solid #dfe1e6;
+}
+
+.org-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.org-info strong {
+  color: #172b4d;
+  font-size: 14px;
+}
+
+.org-info small {
+  color: #626f86;
+  font-size: 12px;
+}
+
+.empty-orgs {
+  padding: 12px 16px;
+  color: #626f86;
+  font-size: 13px;
+  margin: 0;
+  text-align: center;
+}
+
+.org-link {
+  display: block;
+  padding: 10px 16px;
+  text-decoration: none;
+  color: #0052cc;
+  font-size: 13px;
+  font-weight: 500;
+  border-top: 1px solid #dfe1e6;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.org-link:hover {
+  background: #f7f8fa;
+}
+
+.invite-accept-btn {
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.invite-accept-btn:hover {
+  opacity: 0.9;
 }

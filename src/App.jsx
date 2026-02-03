@@ -4,9 +4,12 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import CreateOrganization from "./pages/CreateOrganization";
+import InviteUsers from "./pages/InviteUsers";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import AcceptInvite from "./pages/AcceptInvite";
 
 export default function App() {
   return (
@@ -25,6 +28,36 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/accept-invite"
+          element={<AcceptInvite />}
+        />
+
+        <Route
+          path="/accept-invite/:token"
+          element={<AcceptInvite />}
+        />
+
+        {/* Create Organization */}
+        <Route
+          path="/create-organization"
+          element={
+            <ProtectedRoute>
+              <CreateOrganization />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Invite Users */}
+        <Route
+          path="/invite-users"
+          element={
+            <ProtectedRoute>
+              <InviteUsers />
             </ProtectedRoute>
           }
         />

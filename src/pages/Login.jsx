@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { loginApi } from "../api/auth.api";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import "./Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [form, setForm] = useState({
     email: "",
@@ -32,8 +33,20 @@ export default function Login() {
     localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
 
-    //  ROLE-BASED REDIRECT
-    if (user.role === "ADMIN") {
+    // OPTIONAL redirect (ex: accept-invite link flow)
+    const redirect = new URLSearchParams(location.search).get("redirect");
+    const safeRedirect =
+      redirect &&
+      redirect.startsWith("/") &&
+      !redirect.startsWith("//") &&
+      !redirect.includes("://")
+        ? redirect
+        : null;
+
+    if (safeRedirect) {
+      navigate(safeRedirect, { replace: true });
+    } else if (user.role === "ADMIN") {
+      // ROLE-BASED REDIRECT
       navigate("/admin/dashboard", { replace: true });
     } else {
       navigate("/dashboard", { replace: true });

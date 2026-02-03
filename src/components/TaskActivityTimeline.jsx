@@ -8,9 +8,15 @@ export default function TaskActivityTimeline({ taskId }) {
   useEffect(() => {
     if (!taskId) return;
 
-    getTaskActivity(taskId).then((res) =>
-      setActivities(res.data || [])
-    );
+    getTaskActivity(taskId)
+      .then((res) => {
+        const data = Array.isArray(res) ? res : res.data || [];
+        setActivities(data);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch task activity:", err);
+        setActivities([]);
+      });
   }, [taskId]);
 
   if (activities.length === 0) {

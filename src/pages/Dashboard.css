@@ -8,6 +8,102 @@
   cursor: pointer;
 }
 
+/* ORGANIZATIONS SECTION */
+.organizations-section {
+  padding: 20px 24px;
+  color: #ffebee;
+  border-bottom: 2px solid #d41515;
+}
+
+.organizations-section h2 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #172b4d;
+}
+
+.org-filter {
+  margin-bottom: 20px;
+}
+
+.org-dropdown {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #dfe1e6;
+  border-radius: 4px;
+  background-color: #ffffff;
+  cursor: pointer;
+  color: #172b4d;
+}
+
+.org-dropdown:hover {
+  border-color: #0052cc;
+}
+
+.org-dropdown:focus {
+  outline: none;
+  border-color: #0052cc;
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.1);
+}
+
+.org-details {
+  margin-top: 16px;
+}
+
+.organizations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.org-card {
+  background: #ffffff;
+  border: 1px solid #dfe1e6;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 4px rgba(156, 178, 217, 0.15);
+  transition: box-shadow 0.2s;
+}
+
+.org-card:hover {
+  box-shadow: 0 4px 12px rgba(156, 178, 217, 0.3);
+}
+
+.org-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #0052cc;
+}
+
+.org-card p {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #5e6c84;
+}
+
+.org-card small {
+  font-size: 12px;
+  color: #8590a2;
+}
+
+.no-orgs {
+  font-size: 14px;
+  color: #5e6c84;
+  padding: 20px;
+  text-align: center;
+}
+
+.no-orgs a {
+  color: #0052cc;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.no-orgs a:hover {
+  text-decoration: underline;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -32,6 +128,7 @@
 
 .task-card {
   background: #ffffff;
+  position: relative;
   border-radius: 8px;
   padding: 12px;
   margin-bottom: 10px;
@@ -194,4 +291,24 @@
 .priority-badge.urgent {
   background: #b71c1c;
   color: white;
+}
+
+
+/* delete icon */
+.task-delete-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #f6f3f3;
+  border: none;
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.task-delete-btn:hover {
+  background: #d9363e;
 }

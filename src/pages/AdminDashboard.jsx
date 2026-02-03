@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import CreateTaskModal from "../components/CreateTaskModal";
-import { getAllTasks, adminDeleteTask } from "../api/task.api";
+import { getTasks, deleteTask } from "../api/task.api";
+import { getMyOrganizations } from "../api/organization.api";
 import "./AdminDashboard.css";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "DONE"];
@@ -16,26 +17,94 @@ const PRIORITY_ORDER = {
 
 export default function AdminDashboard() {
   const [tasks, setTasks] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
+  const [selectedOrgId, setSelectedOrgId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
 
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const currentUser = useMemo(() => {
+    try {
+      return JSON.parse(localStorage.getItem("user"));
+    } catch (e) {
+      return null;
+    }
+  }, []);
 
-  /* ================= FETCH TASKS ================= */
+  /* ================= FETCH TASKS AND ORGANIZATIONS ================= */
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchTasks = async () => {
-    const res = await getAllTasks();
-    setTasks(res.data || []);
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getTasks();
+      // handle various response shapes: array, { data: [...] }, { data: { data: [...] } }
+      const tasksArr = Array.isArray(res)
+        ? res
+        : Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+        ? res.data.data
+        : [];
+      setTasks(tasksArr);
+    } catch (err) {
+      console.error("Failed to fetch admin tasks", err);
+      setError(err.message || "Failed to fetch tasks");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchOrganizations = async () => {
+    try {
+      const res = await getMyOrganizations();
+      let orgs = [];
+      if (Array.isArray(res)) {
+        orgs = res;
+      } else if (Array.isArray(res.data)) {
+        orgs = res.data;
+      }
+      setOrganizations(orgs || []);
+    } catch (err) {
+      console.error("Failed to fetch organizations:", err);
+      setOrganizations([]);
+    }
   };
 
   useEffect(() => {
     fetchTasks();
+    fetchOrganizations();
   }, []);
+
+  // Auto-select first organization when organizations are loaded
+  useEffect(() => {
+    if (organizations.length > 0 && !selectedOrgId) {
+      setSelectedOrgId(organizations[0]._id);
+    }
+  }, [organizations]);
 
   /* ================= GROUP BY STATUS + SORT BY PRIORITY ================= */
 
+  // Filter tasks by selected organization and check if admin is member
+  const filteredTasks = selectedOrgId
+    ? tasks.filter((t) => {
+        const taskOrgId = t.organization?._id || t.organization;
+        // Check if task belongs to selected org
+        if (taskOrgId !== selectedOrgId) return false;
+        // Check if current user is admin of this organization
+        const selectedOrg = organizations.find(o => o._id === selectedOrgId);
+        if (!selectedOrg) return false;
+        // Check if current user is in organization members (admin of org)
+        const isOrgAdmin = selectedOrg.members?.some(m => m._id === currentUser?.id) || 
+                          selectedOrg.admin?._id === currentUser?.id;
+        return isOrgAdmin;
+      })
+    : [];
+
   const grouped = STATUSES.reduce((acc, status) => {
-    acc[status] = tasks
+    acc[status] = filteredTasks
       .filter((t) => t.status === status)
       .sort(
         (a, b) =>
@@ -69,9 +138,45 @@ export default function AdminDashboard() {
       <div className="dashboard-main">
         <Navbar />
 
+        {/* ORGANIZATIONS FILTER SECTION */}
+        {organizations.length > 0 && (
+          <div className="organizations-section">
+            <h2>Select Organization to Manage</h2>
+            <div className="org-filter">
+              <select 
+                value={selectedOrgId || ""} 
+                onChange={(e) => setSelectedOrgId(e.target.value)}
+                className="org-dropdown"
+              >
+                {organizations.map((org) => (
+                  <option key={org._id} value={org._id}>
+                    {org.name} ({org.members?.length || 0} members)
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            {/* ORGANIZATION DETAILS */}
+            {selectedOrgId && organizations.find(o => o._id === selectedOrgId) && (
+              <div className="org-details">
+                <div key={selectedOrgId} className="org-card">
+                  <h3>{organizations.find(o => o._id === selectedOrgId)?.name}</h3>
+                  {organizations.find(o => o._id === selectedOrgId)?.description && (
+                    <p>{organizations.find(o => o._id === selectedOrgId)?.description}</p>
+                  )}
+                  <small>{organizations.find(o => o._id === selectedOrgId)?.members?.length || 0} members</small>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <button className="create-btn" onClick={() => setShowCreate(true)}>
           + Create Task
         </button>
+
+        {error && <div className="error">{error}</div>}
+        {loading && <div className="loading">Loading tasks...</div>}
 
         <div className="board">
           {STATUSES.map((status) => (
@@ -155,7 +260,7 @@ export default function AdminDashboard() {
                         className="icon delete"
                         title="Delete Task"
                         onClick={() =>
-                          adminDeleteTask(task._id).then(fetchTasks)
+                          deleteTask(task._id).then(fetchTasks)
                         }
                       >
                         🗑️
@@ -174,6 +279,8 @@ export default function AdminDashboard() {
             mode="create"
             onClose={() => setShowCreate(false)}
             onCreated={fetchTasks}
+            defaultOrgId={selectedOrgId}
+            orgRole="ORG_ADMIN"
           />
         )}
 
@@ -184,6 +291,7 @@ export default function AdminDashboard() {
             task={editingTask}
             onClose={() => setEditingTask(null)}
             onCreated={fetchTasks}
+              orgRole="ORG_ADMIN"
           />
         )}
       </div>
