@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5555",
-  //baseURL: "https://task-assigner-backend-lswo.onrender.com",
+  //baseURL: "http://localhost:5555",
+  baseURL: "https://task-assigner-backend-lswo.onrender.com",
 });
 
 api.interceptors.request.use((config) => {

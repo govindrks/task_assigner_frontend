@@ -1,10 +1,10 @@
 import api from "./axios";
 
 export const getTaskActivity = (taskId) =>
-  api.get(`/activity/tasks/${taskId}/activity`);
+  api.get(`/api/v1/activity/tasks/${taskId}/activity`);
 
 export const getTaskComments = (taskId) =>
-  api.get(`/activity/tasks/${taskId}/comments`);
+  api.get(`/api/v1/activity/tasks/${taskId}/comments`);
 
 export const addTaskComment = (taskId, message) =>
-  api.post(`/activity/tasks/${taskId}/comments`, { message });
+  api.post(`/api/v1/activity/tasks/${taskId}/comments`, { message });
